@@ -3,7 +3,9 @@
 namespace App\Exceptions;
 
 use Illuminate\Foundation\Exceptions\Handler as ExceptionHandler;
+use App\Models\Error;
 use Throwable;
+use Illuminate\Support\Facades\Auth;
 
 class Handler extends ExceptionHandler
 {
@@ -22,7 +24,8 @@ class Handler extends ExceptionHandler
      * @var array<int, class-string<\Throwable>>
      */
     protected $dontReport = [
-        //
+        AuthorizationException::class,
+        HttpException::class,
     ];
 
     /**
@@ -39,10 +42,29 @@ class Handler extends ExceptionHandler
     /**
      * Register the exception handling callbacks for the application.
      */
-    public function register(): void
+    public function register()
     {
-        $this->reportable(function (Throwable $e) {
-            //
+        $this->reportable(function (Throwable $exception) {
+            // only create entries if app environment is not local
+            if (!app()->environment('local')) {
+                $user_id = 0;
+
+
+                if (Auth::user()) {
+                    $user_id = Auth::user()->id;
+                }
+
+                $data = array(
+                    'user_id'   => $user_id,
+                    'code'      => $exception->getCode(),
+                    'file'      => $exception->getFile(),
+                    'line'      => $exception->getLine(),
+                    'message'   => $exception->getMessage(),
+                    'trace'     => $exception->getTraceAsString(),
+                );
+
+                Error::create($data);
+            }
         });
     }
 }

@@ -4,7 +4,10 @@ namespace App\Http\Controllers;
 
 use App\Mail\WelcomeMail;
 use App\Models\User;
+use App\Mail\ResetPasswordMail;
+use App\Models\PasswordResetToken;
 use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
@@ -54,6 +57,59 @@ class AuthController extends Controller
         }
     }
 
+    public function forgotPasswordLink(Request $request)
+    {
+        $validation = Validator::make($request->all(), [
+            'email' => 'required|email|exists:users,email',
+        ]);
+
+        if ($validation->fails())
+            return error('Validation Error', $validation->errors(), 'Validation');
+
+        $user = User::where('email', $request->email)->first();
+        $token = Str::random(64);
+
+        PasswordResetToken::updateOrCreate(
+            ['email'         => $request->email],
+            [
+                'token'         => $token,
+                'created_at'    => now(),
+                'expired_at'    => Carbon::now()->addDays(2)
+            ]
+        );
+
+        $user['token']  = $token;
+
+        Mail::to($request->email)->send(new ResetPasswordMail($user));
+
+        return ok('Mail Sent!');
+    }
+
+    public function forgotPassword(Request $request)
+    {
+        $validation = Validator::make($request->all(), [
+            'email'                 => 'required|email|exists:password_reset_tokens,email',
+            'token'                 => 'required|exists:password_reset_tokens,token',
+            'password'              => 'required|min:8|confirmed',
+            'password_confirmation' => 'required'
+        ]);
+
+        if ($validation->fails())
+            return error('Validation Error', $validation->errors(), 'Validation');
+
+        $passwordreset = PasswordResetToken::where('email', $request->email)->first();
+        if ($passwordreset->expired_at > Carbon::now()) {
+            $user = User::where('email', $request->email)->first();
+            $user->update([
+                'password'  =>  Hash::make($request->password)
+            ]);
+            $passwordreset->delete();
+            return ok('Password Changed Successfully');
+        } else {
+            return error('Token Expired');
+        }
+    }
+
     public function login(Request $request)
     {
         //Validation
@@ -64,7 +120,7 @@ class AuthController extends Controller
 
         if ($validation->fails())
             return error('Validation Error', $validation->errors(), 'validation');
-        
+
         //get user for checking that is active or not.
         $user = User::where('email', $request->email)->first();
         if ($user->is_active == true) {
