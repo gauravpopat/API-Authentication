@@ -21,6 +21,11 @@ use Illuminate\Support\Facades\Route;
 // });
 
 
+//Custom Message When User is Unauthenticated -> app\http\middleware\authenticate.php
+Route::get('unauthenticated',function(){
+    return error('unauthenticated','','unauthenticated');
+})->name('unauthenticated');
+
 //Guest User
 Route::controller(AuthController::class)->group(function () {
     Route::post('register', 'register');
