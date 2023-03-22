@@ -22,8 +22,10 @@ class AuthController extends Controller
     {
         //Validation
         $validation = Validator::make($request->all(), [
-            'name'                  => 'required|max:40',
-            'email'                 => 'required|email|max:40|unique:users,email',
+            'first_name'            => 'required|max:255',
+            'last_name'             => 'required|max:255',
+            'email'                 => 'required|email|max:255|unique:users,email',
+            'phone'                 => 'required|regex:/[6-9][0-9]{9}/|unique:users,phone',
             'password'              => 'required|min:8|confirmed',
             'password_confirmation' => 'required'
         ]);
@@ -33,7 +35,7 @@ class AuthController extends Controller
             return error('Validation Error', $validation->errors(), 'validation');
 
         //Create User
-        $user = User::create($request->only(['name', 'email']) + [
+        $user = User::create($request->only(['first_name','last_name', 'email','phone']) + [
             'password'                  => Hash::make($request->password),
             'email_verification_code'   => Str::random(40)
         ]);
