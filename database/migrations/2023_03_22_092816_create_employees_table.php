@@ -11,19 +11,18 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('users', function (Blueprint $table) {
+        Schema::create('employees', function (Blueprint $table) {
             $table->id();
             $table->string('first_name',255);
             $table->string('last_name',255);
             $table->string('email',255)->unique();
-            $table->string('password',255);
-            $table->boolean('is_active')->default(false); // It is for email verification
-            $table->string('role')->default('user'); //It is for role : User or Admin
-            $table->string('email_verification_code',255)->nullable();
+            $table->string('phone',12);
+            $table->date('joining_date');
 
-            $table->rememberToken();
-            $table->timestamp('email_verified_at')->nullable();
+            $table->unsignedBigInteger('company');
+            
             $table->timestamps();
+            $table->foreign('company')->references('id')->on('companies')->onDelete('cascade')->onUpdate('cascade');
         });
     }
 
@@ -32,6 +31,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('users');
+        Schema::dropIfExists('employees');
     }
 };
