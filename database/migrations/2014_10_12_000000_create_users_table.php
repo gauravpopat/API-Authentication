@@ -16,6 +16,7 @@ return new class extends Migration
             $table->string('first_name',255);
             $table->string('last_name',255);
             $table->string('email',255)->unique();
+            $table->string('phone',12)->unique();
             $table->string('password',255);
             $table->boolean('is_active')->default(false); // It is for email verification
             $table->string('role')->default('user'); //It is for role : User or Admin
