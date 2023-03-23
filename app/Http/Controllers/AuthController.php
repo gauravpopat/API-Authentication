@@ -14,6 +14,7 @@ use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Validator;
 use Laravel\Passport\HasApiTokens;
 use Illuminate\Support\Str;
+use App\Models\Job;
 
 class AuthController extends Controller
 {
@@ -41,7 +42,7 @@ class AuthController extends Controller
         ]);
 
         Mail::to($user->email)->send(new WelcomeMail($user));
-        return ok('User Created Successfully.', $user);
+        return ok('User Created Successfully, Mail sent for Email Verification.', $user);
     }
 
     public function verifyEmail($verificatonCode)
@@ -84,13 +85,13 @@ class AuthController extends Controller
 
         Mail::to($request->email)->send(new ResetPasswordMail($user));
 
-        return ok('Mail Sent!');
+        return ok('Mail Sent for Reset Passoword!');
     }
 
     public function forgotPassword(Request $request)
     {
         $validation = Validator::make($request->all(), [
-            'email'                 => 'required|email|exists:password_reset_tokens,email',
+            'email'                 => 'required|email|exists:password_reset_tokens,email|exists:users,email',
             'token'                 => 'required|exists:password_reset_tokens,token',
             'password'              => 'required|min:8|confirmed',
             'password_confirmation' => 'required'
@@ -135,5 +136,12 @@ class AuthController extends Controller
         } else {
             return error('Email not verifed.');
         }
+    }
+
+    //List of all jobs with company
+    public function list()
+    {
+        $jobs = Job::all()->load('company');
+        return ok('List of Jobs', $jobs);
     }
 }
