@@ -2,12 +2,13 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Contracts\Session\Session;
+use App\Models\EmployeeTask;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
 use App\Models\User;
 use Illuminate\Support\Facades\Hash;
+use App\Models\JobApplication;
+use App\Models\Task;
 
 class UserController extends Controller
 {
@@ -44,6 +45,37 @@ class UserController extends Controller
     {
         auth()->user()->token()->revoke();
         return ok('You have been logged out.');
+    }
+
+    //Apply for job
+    public function applyJob(Request $request)
+    {
+        //Admin can not apply
+        if (auth()->user()->role == 'admin') {
+            return error('You are admin.');
+        }
+
+        //for user.
+        $validation = Validator::make($request->all(), [
+            'job_id'    => 'required|exists:jobs,id',
+            'resume'    => 'required|file'
+        ]);
+
+        if ($validation->fails())
+            return error('Validation Error', $validation->errors());
+
+        $resume = $request->file('resume');
+        $resumeName = 'resume' . now() . $resume->getClientOriginalName();
+
+        if ($resume->move(storage_path('app/public/'), $resumeName)) {
+            JobApplication::create($request->only(['job_id']) + [
+                'user_id'   => auth()->user()->id,
+                'resume'    => 'app/public/' . $resumeName
+            ]);
+            return ok('Your job application sent! We will contact soon.');
+        } else {
+            return error('Resume upload error!');
+        }
     }
 
     //Delete Logged In User.

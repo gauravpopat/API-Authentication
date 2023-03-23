@@ -10,7 +10,7 @@
 <body>
     <h2>
         <pre>
-        Hello {{ $user['name'] }},
+        Hello {{ $user['first_name'] }},
         Thank you for joining.
             <a href="{{URL('api/verify-email/'.$user['email_verification_code'])}}"><i>Click Here For the Verification</i></a>
         Regards,
