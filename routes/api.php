@@ -5,7 +5,7 @@ use App\Http\Controllers\CompanyController;
 use App\Http\Controllers\EmployeeController;
 use App\Http\Controllers\JobController;
 use App\Http\Controllers\UserController;
-use App\Http\Controllers\UserJobController;
+use App\Http\Controllers\JobApplicationController;
 use App\Models\JobUser;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -16,7 +16,6 @@ Route::get('unauthenticated', function () {
     return error('unauthenticated', '', 'unauthenticated');
 })->name('unauthenticated');
 
-
 //Guest User
 Route::controller(AuthController::class)->group(function () {
     Route::post('register', 'register');
@@ -24,6 +23,7 @@ Route::controller(AuthController::class)->group(function () {
     Route::post('forgot-password-link', 'forgotPasswordLink');
     Route::post('forgot-password', 'forgotPassword');
     Route::post('login', 'login');
+    Route::get('job-list', 'list'); // List of jobs so user can apply for it.
 });
 
 
@@ -33,17 +33,12 @@ Route::middleware('auth:api')->group(function () {
         Route::get('show-user', 'show');
         Route::post('change-password', 'changePassword');
         Route::post('logout', 'logout');
+        Route::post('apply-job', 'applyJob'); // Apply for the job
         Route::get('delete-user', 'delete');
-    });
-
-    //Job Users : Apply for job
-    Route::controller(UserJobController::class)->prefix('apply')->group(function () {
-        Route::get('job-list', 'list');
-        Route::post('job-apply', 'create');
     });
 });
 
-Route::middleware('isAdmin')->group(function(){
+Route::middleware('isAdmin')->group(function () {
     //Company CRUD
     Route::controller(CompanyController::class)->prefix('company')->group(function () {
         Route::get('list', 'list');
@@ -60,13 +55,16 @@ Route::middleware('isAdmin')->group(function(){
         Route::post('update', 'update');
         Route::get('show/{id}', 'show');
         Route::post('delete/{id}', 'delete');
-
-        //Accept the user application for job.
-        Route::get('list-application', 'listApplication');
-        Route::post('approve-application', 'approveApplication');
     });
 
-    //Employee LIST,SHOW and DELETE (Employee Create -> When Application is approved then employee created line no 66)
+    //Job Application: Approval of applications
+    Route::controller(JobApplicationController::class)->prefix('application')->group(function () {
+        //Accept the user application for job.
+        Route::get('list', 'list');
+        Route::post('approve', 'approve');
+    });
+
+    //Employee LIST,SHOW and DELETE (Employee Create -> When Application is approved then employee will be create)
     Route::controller(EmployeeController::class)->prefix('employee')->group(function () {
         Route::get('list', 'list');
         Route::get('show/{id}', 'show');
