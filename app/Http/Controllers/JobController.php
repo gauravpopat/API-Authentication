@@ -66,43 +66,4 @@ class JobController extends Controller
         return ok('Job Deleted Successfully');
     }
 
-
-    // List All Job Application
-    public function listApplication()
-    {
-        $applications = JobUser::all();
-        return ok('Job Applications', $applications);
-    }
-
-    //Approve Job Application
-    public function approveApplication(Request $request)
-    {
-        $validation = Validator::make($request->all(), [
-            'id'    => 'required|exists:job_users,id'
-        ]);
-
-        if ($validation->fails())
-            return error('Validation Error', $validation->errors());
-
-        $jobUser = JobUser::find($request->id)->load('jobs');
-        
-        $jobUser->update([
-            'is_confirm'    =>  true
-        ]);
-
-        $userId = $jobUser->user_id;
-        $user = User::find($userId);
-
-        $employee = Employee::create([
-            'first_name'    =>  $user->first_name,
-            'last_name'     =>  $user->last_name,
-            'email'         =>  $user->email,
-            'phone'         =>  $user->phone,
-            'company'       =>  $jobUser->jobs->company_id,
-            'phone'         =>  $user->phone,
-            'joining_date'  =>  Carbon::now()->addMonth(1)
-        ]);
-
-        return ok('Application is Approved',$employee);
-    }
 }
