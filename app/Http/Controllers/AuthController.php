@@ -21,6 +21,7 @@ class AuthController extends Controller
     use HasApiTokens;
     public function register(Request $request)
     {
+        return Auth::user();
         //Validation
         $validation = Validator::make($request->all(), [
             'first_name'            => 'required|max:255',
@@ -28,7 +29,8 @@ class AuthController extends Controller
             'email'                 => 'required|email|max:255|unique:users,email',
             'phone'                 => 'required|regex:/[6-9][0-9]{9}/|unique:users,phone',
             'password'              => 'required|min:8|confirmed',
-            'password_confirmation' => 'required'
+            'password_confirmation' => 'required',
+            'role'                  => 'in:admin,user'
         ]);
 
         //Used Error Helper Function for Displaying the Errors.
@@ -36,7 +38,7 @@ class AuthController extends Controller
             return error('Validation Error', $validation->errors(), 'validation');
 
         //Create User
-        $user = User::create($request->only(['first_name','last_name', 'email','phone']) + [
+        $user = User::create($request->only(['first_name','last_name', 'email','phone','role']) + [
             'password'                  => Hash::make($request->password),
             'email_verification_code'   => Str::random(40)
         ]);

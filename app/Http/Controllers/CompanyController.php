@@ -8,9 +8,10 @@ use Illuminate\Support\Facades\Validator;
 
 class CompanyController extends Controller
 {
+    //List of companies with their employees
     public function list()
     {
-        $companies = Company::all();
+        $companies = Company::with('employees')->get();
         return ok('Company List', $companies);
     }
 
@@ -21,7 +22,7 @@ class CompanyController extends Controller
         $validation = Validator::make($request->all(), [
             'name'      => 'required|max:255',
             'email'     => 'required|email|max:255|unique:companies,email',
-            'logo'      => 'required|image',
+            'logo'      => 'required|mimes:jpeg,jpg,png,gif|dimensions:max_width=100,max_height=100',
             'website'   => 'required|unique:companies,website'
         ]);
 
@@ -62,10 +63,11 @@ class CompanyController extends Controller
                 $image = $request->file('logo');
                 $imageName = 'logo' . now() . $image->getClientOriginalName();
                 $image->move(storage_path('app/public/'), $imageName);
+                $company->update([
+                    'logo' => 'app/public/' . $imageName
+                ]);
             }
-            $company->update($request->only(['name', 'email', 'website']) + [
-                'logo' => 'app/public/' . $imageName
-            ]);
+            $company->update($request->only(['name', 'email', 'website']));
             return ok('Data Updated Successfully.');
         } else {
             return error('No Data Passed for Update');

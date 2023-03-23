@@ -2,11 +2,13 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\EmployeeTask;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use App\Models\User;
 use Illuminate\Support\Facades\Hash;
 use App\Models\JobApplication;
+use App\Models\Task;
 
 class UserController extends Controller
 {
@@ -49,8 +51,7 @@ class UserController extends Controller
     public function applyJob(Request $request)
     {
         //Admin can not apply
-        if(auth()->user()->role == 'admin')
-        {
+        if (auth()->user()->role == 'admin') {
             return error('You are admin.');
         }
 
