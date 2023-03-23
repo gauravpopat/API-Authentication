@@ -22,7 +22,7 @@ class CompanyController extends Controller
             'name'      => 'required|max:255',
             'email'     => 'required|email|max:255|unique:companies,email',
             'logo'      => 'required|image',
-            'website'   => 'required'
+            'website'   => 'required|unique:companies,website'
         ]);
 
         if ($validation->fails())
