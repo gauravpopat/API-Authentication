@@ -13,8 +13,10 @@ return new class extends Migration
     {
         Schema::create('jobs', function (Blueprint $table) {
             $table->id();
-            $table->string('name',255);
+            $table->string('technology',255);
             $table->float('package');
+            
+            $table->integer('minimum_experience')->default(0);
 
             $table->unsignedBigInteger('company_id');
             

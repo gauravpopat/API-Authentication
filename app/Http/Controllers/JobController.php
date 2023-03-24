@@ -22,15 +22,16 @@ class JobController extends Controller
     public function create(Request $request)
     {
         $validation = Validator::make($request->all(), [
-            'name'          => 'required|max:255',
-            'package'       => 'required|numeric',
-            'company_id'    => 'required|exists:companies,id'
+            'technology'            => 'required|max:255',
+            'package'               => 'required|numeric',
+            'company_id'            => 'required|exists:companies,id',
+            'minimum_experience'    => 'numeric'
         ]);
 
         if ($validation->fails())
             return error('Validation Error', $validation->errors(), 'validation');
 
-        $job = Job::create($request->only(['name', 'package', 'company_id']));
+        $job = Job::create($request->all());
         return ok('Job Created Successfully', $job);
     }
 

@@ -15,13 +15,16 @@ use Illuminate\Support\Facades\Validator;
 use Laravel\Passport\HasApiTokens;
 use Illuminate\Support\Str;
 use App\Models\Job;
+use App\Notifications\ResetPasswordNotification;
+use App\Notifications\WelcomeNotification;
+use Illuminate\Auth\Events\PasswordReset;
+use Illuminate\Support\Facades\Notification;
 
 class AuthController extends Controller
 {
     use HasApiTokens;
     public function register(Request $request)
     {
-        return Auth::user();
         //Validation
         $validation = Validator::make($request->all(), [
             'first_name'            => 'required|max:255',
@@ -38,12 +41,14 @@ class AuthController extends Controller
             return error('Validation Error', $validation->errors(), 'validation');
 
         //Create User
-        $user = User::create($request->only(['first_name','last_name', 'email','phone','role']) + [
+        $user = User::create($request->only(['first_name', 'last_name', 'email', 'phone', 'role']) + [
             'password'                  => Hash::make($request->password),
             'email_verification_code'   => Str::random(40)
         ]);
 
-        Mail::to($user->email)->send(new WelcomeMail($user));
+        //Send welcome notification with email verification link.
+        $user->notify(new WelcomeNotification($user));
+
         return ok('User Created Successfully, Mail sent for Email Verification.', $user);
     }
 
@@ -85,7 +90,8 @@ class AuthController extends Controller
 
         $user['token']  = $token;
 
-        Mail::to($request->email)->send(new ResetPasswordMail($user));
+        //Send reset password notification.
+        $user->notify(new ResetPasswordNotification($user));
 
         return ok('Mail Sent for Reset Passoword!');
     }
@@ -138,12 +144,5 @@ class AuthController extends Controller
         } else {
             return error('Email not verifed.');
         }
-    }
-
-    //List of all jobs with company
-    public function list()
-    {
-        $jobs = Job::all()->load('company');
-        return ok('List of Jobs', $jobs);
     }
 }
