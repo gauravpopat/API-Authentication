@@ -66,5 +66,4 @@ class JobController extends Controller
         Job::find($id)->delete();
         return ok('Job Deleted Successfully');
     }
-
 }

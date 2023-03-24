@@ -12,6 +12,7 @@ use App\Models\Task;
 use App\Models\Job;
 use Illuminate\Contracts\Cache\Store;
 use Illuminate\Support\Facades\File;
+
 class UserController extends Controller
 {
     //show the logged in user
@@ -72,12 +73,12 @@ class UserController extends Controller
 
         if ($validation->fails())
             return error('Validation Error', $validation->errors());
-        
-        $job = Job::with('company')->where('id',$request->job_id)->first();
-        if($job->company->is_active == false){
+
+        $job = Job::with('company')->where('id', $request->job_id)->first();
+        if ($job->company->is_active == false) {
             return error('Currently the company is inactive');
         }
-        
+
         //Store resume file $resume 
         $resume = $request->file('resume');
         //Generate new resume file name
@@ -90,9 +91,9 @@ class UserController extends Controller
         ]);
 
         //Move user resume into storage/app/public/user/resume/{user_id}/...
-        $path = storage_path('app/public/user/resume/').$jobApplication->user_id.'/';
+        $path = storage_path('app/public/user/resume/') . $jobApplication->user_id . '/';
         $resume->move($path, $resumeName);
-        
+
         return ok('Your job application sent! We will contact soon.');
     }
 
@@ -102,7 +103,7 @@ class UserController extends Controller
         $user = auth()->user();
 
         //delete the data of user
-        $userFile = storage_path('app/public/user/resume/').$user->id;
+        $userFile = storage_path('app/public/user/resume/') . $user->id;
         File::deleteDirectory($userFile);
         return ok('User Deleted Successfully');
     }

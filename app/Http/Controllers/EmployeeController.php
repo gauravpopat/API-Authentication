@@ -15,20 +15,20 @@ class EmployeeController extends Controller
 
     public function profile(Request $request)
     {
-        $employee = Employee::with('tasks','company')->where('email',auth()->user()->email)->get();
-        return ok('Employee',$employee);
+        $employee = Employee::with('tasks', 'company')->where('email', auth()->user()->email)->get();
+        return ok('Employee', $employee);
     }
 
     public function list(Request $request)
     {
-        $employee = Employee::where('email',auth()->user()->email)->first();
+        $employee = Employee::where('email', auth()->user()->email)->first();
         $this->ListingValidation();
-        $query = Task::where('employee_id',$employee->id)->first();
+        $query = Task::where('employee_id', $employee->id)->first();
         $searchable_fields = ['title'];
         $data = $this->filterSearchPagination($query, $searchable_fields);
-        return ok('Tasks',[
-            'tasks'=>$data['query']->get(),
-            'count'=>$data['count']
+        return ok('Tasks', [
+            'tasks' => $data['query']->get(),
+            'count' => $data['count']
         ]);
     }
 

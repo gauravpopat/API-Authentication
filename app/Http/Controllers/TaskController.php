@@ -33,17 +33,17 @@ class TaskController extends Controller
 
     public function update(Request $request)
     {
-        $validation = Validator::make($request->all(),[
+        $validation = Validator::make($request->all(), [
             'id'            => 'required|exists:tasks,id',
             'due_date'      => 'date_format:Y-m-d|after:assign_date',
             'employee_id'   => 'exists:employees,id'
         ]);
 
-        if($validation->fails())
-            return error('Validation Error',$validation->errors(),'Validation');
-        
-        if(count($request->all())>1){
-            $task = Task::where('id',$request->id)->first();
+        if ($validation->fails())
+            return error('Validation Error', $validation->errors(), 'Validation');
+
+        if (count($request->all()) > 1) {
+            $task = Task::where('id', $request->id)->first();
             $task->update($request->all());
             return ok('Task Updated Successfully');
         }
@@ -59,6 +59,6 @@ class TaskController extends Controller
     public function show($id)
     {
         $task = Task::find($id);
-        return ok('Task Detail',$task);
+        return ok('Task Detail', $task);
     }
 }
