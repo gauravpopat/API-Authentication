@@ -14,7 +14,7 @@ class JobApplicationController extends Controller
     public function list()
     {
         $applications = JobApplication::all();
-        return ok('applications',$applications);
+        return ok('applications', $applications);
     }
 
     public function approve(Request $request)
@@ -28,7 +28,7 @@ class JobApplicationController extends Controller
 
         $application = JobApplication::find($request->id)->load('jobs');
         $user = User::find($application->user_id);
-        
+
         $application->update([
             'is_confirm'    =>  true
         ]);
@@ -47,6 +47,6 @@ class JobApplicationController extends Controller
             'joining_date'  =>  Carbon::now()->addMonth(1) //joining date 1 month after selection.
         ]);
 
-        return ok('Application is Approved',$employee);
+        return ok('Application is Approved', $employee);
     }
 }
