@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Company;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\File;
 
 class CompanyController extends Controller
 {
@@ -23,24 +24,25 @@ class CompanyController extends Controller
             'name'      => 'required|max:255',
             'email'     => 'required|email|max:255|unique:companies,email',
             'logo'      => 'required|mimes:jpeg,jpg,png,gif|dimensions:max_width=100,max_height=100',
-            'website'   => 'required|unique:companies,website'
+            'website'   => 'required|unique:companies,website',
+            'is_active' => 'in:true,false'
         ]);
 
         if ($validation->fails())
             return error('Validation Error', $validation->errors(), 'validation');
 
         $image = $request->file('logo'); //store logo file in image
-        $imageName = 'logo' . now() . $request->file('logo')->getClientOriginalName(); //generated new image name
+        $imageName = 'logo' . time() . $request->file('logo')->getClientOriginalName(); //generated new image name
 
-        //move image into storage/app/public
-        if ($image->move(storage_path('app/public/'), $imageName)) {
-            $company = Company::create($request->only(['name', 'email', 'website']) + [
-                'logo'  => 'app/public/' . $imageName
-            ]);
-            return ok('Company Created Successfully.', $company);
-        } else {
-            return error('Logo upload problem!! Try again.');
-        }
+        $company = Company::create($request->only(['name', 'email', 'website', 'is_active']) + [
+            'logo'  => $imageName
+        ]);
+
+        //Move company logo into storage/app/public/company/logo/{company_id}/... 
+        $path = storage_path('app/public/company/logo/') . $company->id . '/';
+        $image->move($path, $imageName);
+
+        return ok('Company Created Successfully.', $company);
     }
 
     //Update Company Details
@@ -51,27 +53,37 @@ class CompanyController extends Controller
             'name'      => 'max:255',
             'email'     => 'email|max:255|unique:companies,email',
             'logo'      => 'image',
-            'website'   => 'max:255'
+            'website'   => 'max:255',
+            'is_active' => 'in:0,1'
         ]);
+
         if ($validation->fails())
             return error('Validation Error', $validation->errors(), 'validation');
 
-        if (count($request->all()) > 1) {
-            $company = Company::find($request->id);
+        $company = Company::find($request->id);
 
-            if ($request->logo) {
-                $image = $request->file('logo');
-                $imageName = 'logo' . now() . $image->getClientOriginalName();
-                $image->move(storage_path('app/public/'), $imageName);
-                $company->update([
-                    'logo' => 'app/public/' . $imageName
-                ]);
-            }
-            $company->update($request->only(['name', 'email', 'website']));
-            return ok('Data Updated Successfully.');
-        } else {
-            return error('No Data Passed for Update');
+        if ($request->logo) {
+            //Delete the old logo.
+            $oldLogo = storage_path('app/public/company/logo/') . $company->id . '/' . $company->logo;
+            File::delete($oldLogo);
+
+            //store logo in image
+            $image = $request->file('logo');
+            //generate new image name
+            $imageName = 'logo' . time() . $image->getClientOriginalName();
+
+            //Update the logo.
+            $company->update([
+                'logo' => $imageName
+            ]);
+
+            //Move updated logo into storage/app/public/company/logo/{company_id}/... 
+            $path = storage_path('app/public/company/logo/') . $company->id . '/';
+            $image->move($path, $imageName);
         }
+
+        $company->update($request->only(['name', 'email', 'website', 'is_active']));
+        return ok('Data Updated Successfully.');
     }
 
     //Show Company
@@ -84,7 +96,16 @@ class CompanyController extends Controller
     //Delete Company
     public function delete($id)
     {
-        Company::find($id)->delete();
+        $company = Company::find($id);
+
+        //get the companyid folder
+        $companyFile = storage_path('app/public/company/logo/') . $company->id;
+
+        //delete that folder
+        File::deleteDirectory($companyFile);
+
+        //delete the company
+        $company->delete();
         return ok('Company Deleted Successfully');
     }
 }

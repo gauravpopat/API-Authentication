@@ -43,7 +43,9 @@ class EmployeeManageController extends Controller
 
     public function delete($id)
     {
-        Employee::find($id)->delete();
+        $employee = Employee::find($id);
+        $employee->tasks->delete();
+        $employee->delete();
         return ok('Employee Deleted Successfully');
     }
 }

@@ -17,6 +17,7 @@ return new class extends Migration
             $table->string('email',255)->unique();
             $table->string('logo',255);
             $table->string('website',255)->unique();
+            $table->boolean('is_active')->default(true);
             $table->timestamps();
         });
     }

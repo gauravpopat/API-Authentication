@@ -19,20 +19,18 @@ class EmployeeController extends Controller
         return ok('Employee',$employee);
     }
 
-    //Search for tasks
-    // public function list(Request $request)
-    // {
-    //     $employee = Employee::where('email',auth()->user()->email)->first();
-    //     $this->ListingValidation();
-    //     $query = Task::where('employee_id',$employee->id)->first();
-    //     $searchable_fields = ['title'];
-    //     $data = $this->filterSearchPagination($query, $searchable_fields);
-    //     return ok('Tasks',[
-    //         'tasks'=>$data['query']->get(),
-    //         'count'=>$data['count']
-    //     ]);
-    // }
-
+    public function list(Request $request)
+    {
+        $employee = Employee::where('email',auth()->user()->email)->first();
+        $this->ListingValidation();
+        $query = Task::where('employee_id',$employee->id)->first();
+        $searchable_fields = ['title'];
+        $data = $this->filterSearchPagination($query, $searchable_fields);
+        return ok('Tasks',[
+            'tasks'=>$data['query']->get(),
+            'count'=>$data['count']
+        ]);
+    }
 
     //submit the task
 

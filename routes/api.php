@@ -8,6 +8,7 @@ use App\Http\Controllers\UserController;
 use App\Http\Controllers\JobApplicationController;
 use App\Http\Controllers\TaskController;
 use App\Http\Controllers\EmployeeManageController;
+use App\Http\Controllers\ImportExportController;
 use Illuminate\Support\Facades\Route;
 
 
@@ -16,8 +17,6 @@ Route::get('unauthenticated', function () {
     return error('unauthenticated', '', 'unauthenticated');
 })->name('unauthenticated');
 
-
-
 // Guest User
 Route::controller(AuthController::class)->group(function () {
     Route::post('register', 'register');
@@ -25,7 +24,6 @@ Route::controller(AuthController::class)->group(function () {
     Route::post('forgot-password-link', 'forgotPasswordLink');
     Route::post('forgot-password', 'forgotPassword');
     Route::post('login', 'login');
-    Route::get('job-list', 'list'); // List of jobs so user can apply for it.
 });
 
 // Logged In User
@@ -34,6 +32,7 @@ Route::middleware('auth:api')->group(function () {
         Route::get('show-user', 'show');
         Route::post('change-password', 'changePassword');
         Route::post('logout', 'logout');
+        Route::get('job-list', 'list'); // List of jobs so user can apply for it.
         Route::post('apply-job', 'applyJob'); // Apply for the job
         Route::get('delete-user', 'delete');
     });
@@ -54,7 +53,7 @@ Route::middleware('auth:api', 'isAdmin')->group(function () {
         Route::post('create', 'create');
         Route::post('update', 'update');
         Route::get('show/{id}', 'show');
-        Route::post('delete/{id}', 'delete');
+        Route::get('delete/{id}', 'delete');
     });
 
     //Job CRUD and List of JOB APPLICATION and APPROVE JOB APPLICATION
@@ -70,6 +69,7 @@ Route::middleware('auth:api', 'isAdmin')->group(function () {
     Route::controller(JobApplicationController::class)->prefix('application')->group(function () {
         Route::get('list', 'list');
         Route::post('approve', 'approve');
+        Route::post('decline', 'decline');
     });
 
     //Employee Manage LIST,SHOW and DELETE (Employee Create -> When Application is approved then employee will be create)
@@ -87,5 +87,12 @@ Route::middleware('auth:api', 'isAdmin')->group(function () {
         Route::post('update', 'update');
         Route::get('show/{id}', 'show');
         Route::get('delete/{id}', 'delete');
+    });
+
+
+    //For Import and Export
+    Route::controller(ImportExportController::class)->prefix('employee')->group(function () {
+        Route::post('import', 'import');
+        Route::post('export', 'export');
     });
 });
